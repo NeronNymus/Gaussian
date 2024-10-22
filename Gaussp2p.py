@@ -14,7 +14,7 @@ from concurrent.futures import ThreadPoolExecutor
 from utils.colors import Colors
 
 # Current list of active nodes
-active_nodes = []
+active_nodes = set()
 
 def get_private_ip():
     try:
@@ -59,7 +59,7 @@ def scan_host(ip, port):
             s.settimeout(1)
             result = s.connect_ex((str(ip), port))
             if result == 0:
-                active_nodes.append(ip)
+                active_nodes.add(ip)
 
     except Exception as e:
         print(f"Error scanning {ip}:{port} - {e}")
@@ -118,12 +118,13 @@ def handle_client(conn):
 if __name__ == "__main__":
     # Start listening for connections in a separate thread
     threading.Thread(target=listen_for_connections, args=(65300,), daemon=True).start()
-    time.sleep(20)
 
-    # Scan the private network for active nodes
-    scan_private_network(65300)
+    # Scan for active nodes every 20 seconds
+    while True:
+        time.sleep(2)
+        scan_private_network(65300)
 
-    print(Colors.BOLD_WHITE + "\n[!] Active nodes:" + Colors.R)
-    for node in active_nodes:
-        print(Colors.GREEN + node + Colors.R)
+        print(Colors.BOLD_WHITE + "\n[!] Active nodes:" + Colors.R)
+        for node in active_nodes:
+            print(Colors.GREEN + str(node) + Colors.R)
 
