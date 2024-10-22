@@ -122,11 +122,13 @@ if __name__ == "__main__":
     threading.Thread(target=listen_for_connections, args=(65300,), daemon=True).start()
 
     # Scan for active nodes every 20 seconds
+    cont = 1
     while True:
-        time.sleep(10)
+        time.sleep(20)
         scan_private_network(65300)
 
         print(Colors.BOLD_WHITE + "\n[!] Active nodes:" + Colors.R)
         for node in active_nodes:
-            print(Colors.GREEN + str(node) + Colors.R)
+            print(Colors.ORANGE + f"[{cont}] " + Colors.GREEN + str(node) + Colors.R)
+            cont += 1
 
