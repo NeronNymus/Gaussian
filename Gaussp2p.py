@@ -118,12 +118,12 @@ def handle_client(conn):
 if __name__ == "__main__":
     # Start listening for connections in a separate thread
     threading.Thread(target=listen_for_connections, args=(65300,), daemon=True).start()
-    #time.sleep(1)
+    time.sleep(20)
 
     # Scan the private network for active nodes
     scan_private_network(65300)
 
     print(Colors.BOLD_WHITE + "\n[!] Active nodes:" + Colors.R)
     for node in active_nodes:
-        print(node)
+        print(Colors.GREEN + node + Colors.R)
 
