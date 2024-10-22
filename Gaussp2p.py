@@ -27,6 +27,8 @@ def get_private_ip():
         private_ip = None
     return private_ip
 
+# Global variable
+private_ip = get_private_ip()
 
 def get_subnet_mask(ip):
     interfaces = netifaces.interfaces()
@@ -75,7 +77,7 @@ def scan_network(network, port=65300):
 
 
 def scan_private_network(port=65300):
-    private_ip = get_private_ip()
+    global private_ip
     
     if private_ip:
         network = get_ip_range_cidr(private_ip)
@@ -98,15 +100,18 @@ def listen_for_connections(port=65300):
 
 def handle_client(conn):
     """Handle communication with a connected client."""
+    global private_ip
+
     with conn:
         while True:
             data = conn.recv(1024)
             if not data:
                 break  # Break the loop if no data is received
+
             print(f"Received: {data.decode()}")  # Print the received message
 
             # Optionally send a response
-            response = b"Message received"
+            response = f"Message sended from {private_ip}".encode()
             conn.sendall(response)
 
 
