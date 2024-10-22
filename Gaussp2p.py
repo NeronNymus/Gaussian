@@ -65,7 +65,7 @@ def scan_host(ip, port):
 
 def scan_network(network, port=65300):
     """Scan the specified network for hosts with the given port open."""
-    print(Colors.ORANGE + "[!] Scanning hosts on: " + Colors.BOLD_WHITE + str(network) + Colors.ORANGE + " on port " + Colors.BOLD_WHITE + str(port) + Colors.R + "...\n")
+    print(Colors.ORANGE + "[!] Scanning hosts on " + Colors.BOLD_WHITE + str(network) + Colors.ORANGE + " on port " + Colors.BOLD_WHITE + str(port) + Colors.R + "...\n")
     
     ip_network = ipaddress.ip_network(network, strict=False)
     
