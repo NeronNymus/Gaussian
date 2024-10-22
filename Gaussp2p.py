@@ -54,7 +54,6 @@ def get_ip_range_cidr(private_ip):
 def scan_host(ip, port):
     """Attempt to connect to the specified IP on the given port."""
     global active_nodes
-    active_nodes.clear()    # Refresh the content
     try:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.settimeout(1)
@@ -68,7 +67,9 @@ def scan_host(ip, port):
 
 def scan_network(network, port=65300):
     """Scan the specified network for hosts with the given port open."""
+
     print(Colors.ORANGE + "[!] Scanning hosts on " + Colors.BOLD_WHITE + str(network) + Colors.ORANGE + " on port " + Colors.BOLD_WHITE + str(port) + Colors.R + "...\n")
+    active_nodes.clear()    # Refresh the content
     
     ip_network = ipaddress.ip_network(network, strict=False)
     
