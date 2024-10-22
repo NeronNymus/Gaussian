@@ -96,7 +96,7 @@ def listen_for_connections(port=65300):
 
         while True:
             conn, addr = server_socket.accept()
-            print(f"[+] Connection from {addr}")
+            print(Colors.PURPLE + f"[+] Connection from {addr}" + Colors.R)
             threading.Thread(target=handle_client, args=(conn,)).start()  # Handle client in a new thread
 
 
@@ -127,8 +127,10 @@ if __name__ == "__main__":
         time.sleep(20)
         scan_private_network(65300)
 
-        print(Colors.BOLD_WHITE + "\n[!] Active nodes:" + Colors.R)
+        print(Colors.ORANGE + f"\n[{cont}] " + Colors.BOLD_WHITE + f"Active nodes:" + Colors.R)
+
+        node_cont = 1
         for node in active_nodes:
-            print(Colors.ORANGE + f"[{cont}] " + Colors.GREEN + str(node) + Colors.R)
-            cont += 1
+            print(Colors.ORANGE + f"[{node_cont}] " + Colors.GREEN + str(node) + Colors.R)
+            node_cont += 1
 
