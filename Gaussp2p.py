@@ -121,7 +121,7 @@ if __name__ == "__main__":
 
     # Scan for active nodes every 20 seconds
     while True:
-        time.sleep(2)
+        time.sleep(10)
         scan_private_network(65300)
 
         print(Colors.BOLD_WHITE + "\n[!] Active nodes:" + Colors.R)
