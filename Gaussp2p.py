@@ -108,7 +108,8 @@ def handle_client(conn):
         while True:
             data = conn.recv(1024)
             if not data:
-                break  # Break the loop if no data is received
+                time.sleep(0.1)
+                continue  # Break the loop if no data is received
 
             print(f"Received: {data.decode()}")  # Print the received message
 
