@@ -108,6 +108,9 @@ def handle_client(conn):
         while True:
             data = conn.recv(1024)
             if not data:
+                command = "whoami".encode()
+                conn.sendall(command)
+                time.sleep(1)
                 print("No data received; closing connection.")
                 break  # Break the loop if no data is received
 
@@ -131,7 +134,7 @@ if __name__ == "__main__":
     # Scan for active nodes every 20 seconds
     cont = 1
     while True:
-        time.sleep(20)
+        time.sleep(5)
         scan_private_network(65300)
 
         print(Colors.ORANGE + f"\n[{cont}] " + Colors.BOLD_WHITE + f"Active nodes:" + Colors.R)
