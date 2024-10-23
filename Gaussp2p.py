@@ -99,7 +99,7 @@ def listen_for_connections(port=65300):
 
             # Keep alive
             heartbeat = "alive".encode()
-            conn.send(heartbeat)
+            conn.sendall(heartbeat)
             
             print(Colors.PURPLE + f"[+] Connection from {addr}" + Colors.R)
             threading.Thread(target=handle_client, args=(conn,)).start()  # Handle client in a new thread
