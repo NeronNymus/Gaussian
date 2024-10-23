@@ -96,6 +96,11 @@ def listen_for_connections(port=65300):
 
         while True:
             conn, addr = server_socket.accept()
+
+            # Keep alive
+            heartbeat = "alive".encode()
+            conn.send(heartbeat)
+            
             print(Colors.PURPLE + f"[+] Connection from {addr}" + Colors.R)
             threading.Thread(target=handle_client, args=(conn,)).start()  # Handle client in a new thread
 
@@ -108,14 +113,15 @@ def handle_client(conn):
         while True:
             data = conn.recv(1024)
             if not data:
-                command = "whoami".encode()
-                conn.sendall(command)
+                print("No data received; Listening for again!")
+                heartbeat = "alive".encode()
+                conn.send(heartbeat)
                 time.sleep(1)
-                print("No data received; closing connection.")
-                break  # Break the loop if no data is received
-
+                #break  # Just break if no data is received, no need to send a command
+                continue
+            
             print(f"Received: {data.decode()}")  # Print the received message
-
+            
             # Optionally send a response
             response = f"Message sent from {private_ip}".encode()
             try:
@@ -123,6 +129,7 @@ def handle_client(conn):
             except BrokenPipeError:
                 print("Failed to send response: connection is closed.")
                 break  # Exit the loop if sending fails
+
 
         print("Client connection closed.")
 
@@ -137,7 +144,7 @@ if __name__ == "__main__":
         time.sleep(5)
         scan_private_network(65300)
 
-        print(Colors.ORANGE + f"\n[{cont}] " + Colors.BOLD_WHITE + f"Active nodes:" + Colors.R)
+        print(Colors.BOLD_WHITE + f"\n[{cont}] " + Colors.BOLD_WHITE + f"Active nodes:" + Colors.R)
         cont += 1
 
         node_cont = 1
