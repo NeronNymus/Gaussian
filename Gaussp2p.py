@@ -108,16 +108,20 @@ def handle_client(conn):
         while True:
             data = conn.recv(1024)
             if not data:
-                time.sleep(0.1)
-                command = "whoami".encode()
-                conn.send(command)
-                continue  # Break the loop if no data is received
+                print("No data received; closing connection.")
+                break  # Break the loop if no data is received
 
             print(f"Received: {data.decode()}")  # Print the received message
 
             # Optionally send a response
-            response = f"Message sended from {private_ip}".encode()
-            conn.sendall(response)
+            response = f"Message sent from {private_ip}".encode()
+            try:
+                conn.sendall(response)
+            except BrokenPipeError:
+                print("Failed to send response: connection is closed.")
+                break  # Exit the loop if sending fails
+
+        print("Client connection closed.")
 
 
 if __name__ == "__main__":
