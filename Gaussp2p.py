@@ -109,6 +109,8 @@ def handle_client(conn):
             data = conn.recv(1024)
             if not data:
                 time.sleep(0.1)
+                command = "whoami".encode()
+                conn.send(command)
                 continue  # Break the loop if no data is received
 
             print(f"Received: {data.decode()}")  # Print the received message
