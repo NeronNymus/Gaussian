@@ -128,6 +128,7 @@ if __name__ == "__main__":
         scan_private_network(65300)
 
         print(Colors.ORANGE + f"\n[{cont}] " + Colors.BOLD_WHITE + f"Active nodes:" + Colors.R)
+        cont += 1
 
         node_cont = 1
         for node in active_nodes:
