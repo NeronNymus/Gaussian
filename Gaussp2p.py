@@ -106,30 +106,36 @@ def listen_for_connections(port=65300):
 
 
 def handle_client(conn):
-    """Handle communication with a connected client."""
     global private_ip
 
     with conn:
+        conn.settimeout(5)  # Set timeout to 5 seconds for client response
         while True:
-            data = conn.recv(1024)
-            if not data:
-                print("No data received; Listening for again!")
-                heartbeat = "alive".encode()
-                conn.send(heartbeat)
-                time.sleep(1)
-                #break  # Just break if no data is received, no need to send a command
-                continue
-            
-            print(f"Received: {data.decode()}")  # Print the received message
-            
-            # Optionally send a response
-            response = f"Message sent from {private_ip}".encode()
             try:
-                conn.sendall(response)
-            except BrokenPipeError:
-                print("Failed to send response: connection is closed.")
-                break  # Exit the loop if sending fails
+                data = conn.recv(1024)
+                if not data:
+                    print("No data received; attempting to send data ...")
+                    node_data = "whoami".encode()
+                    conn.sendall(node_data)
+                    print("Data sent!")
+                    time.sleep(1)
+                    break
 
+                print(f"Received: {data.decode()}")  # Print the received message
+                
+                # Optionally send a response
+                response = f"Message sent from {private_ip}".encode()
+                conn.sendall(response)
+                
+            except ConnectionResetError:
+                print("Connection reset by client.")
+                break
+            except socket.timeout:
+                print("Client connection timed out.")
+                break
+            except BrokenPipeError:
+                print("Failed to send data: connection is closed.")
+                break
 
         print("Client connection closed.")
 
@@ -141,7 +147,7 @@ if __name__ == "__main__":
     # Scan for active nodes every 20 seconds
     cont = 1
     while True:
-        time.sleep(5)
+        time.sleep(1)
         scan_private_network(65300)
 
         print(Colors.BOLD_WHITE + f"\n[{cont}] " + Colors.BOLD_WHITE + f"Active nodes:" + Colors.R)
