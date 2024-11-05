@@ -61,7 +61,7 @@ def scan_host(ip, port):
 
 def scan_network(network, port=65300):
     print(Colors.ORANGE + "[!] Scanning hosts on " + Colors.BOLD_WHITE + str(network) + Colors.ORANGE + " on port " + Colors.BOLD_WHITE + str(port) + Colors.R + "...\n")
-    active_nodes.clear()  
+    #active_nodes.clear()  
     ip_network = ipaddress.ip_network(network, strict=False)
     
     with ThreadPoolExecutor(max_workers=100) as executor:
