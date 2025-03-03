@@ -1,8 +1,5 @@
 #!/usr/bin/env python3
 
-# This is a P2P script that works on the LAN
-#!/usr/bin/env python3
-
 import sys
 import time
 import socket
@@ -12,10 +9,13 @@ import threading
 from concurrent.futures import ThreadPoolExecutor
 from utils.colors import Colors
 
+# Global variables
 active_nodes = set()
+active_nodes_lock = threading.Lock()  # Thread-safe access to active_nodes
 private_ip = None
 
 def get_private_ip():
+    """Get the private IP address of the current machine."""
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         s.connect(('8.8.8.8', 80))
@@ -29,6 +29,7 @@ def get_private_ip():
 private_ip = get_private_ip()
 
 def get_subnet_mask(ip):
+    """Get the subnet mask for the given IP address."""
     interfaces = netifaces.interfaces()
     for interface in interfaces:
         addrs = netifaces.ifaddresses(interface)
@@ -39,6 +40,7 @@ def get_subnet_mask(ip):
     return None
 
 def get_ip_range_cidr(private_ip):
+    """Get the IP network range in CIDR notation."""
     subnet_mask = get_subnet_mask(private_ip)
     if subnet_mask is None:
         print("Could not determine subnet mask.")
@@ -48,23 +50,21 @@ def get_ip_range_cidr(private_ip):
     return network
 
 def scan_host(ip, port):
-    global active_nodes
+    """Scan a single host on the specified port."""
     try:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.settimeout(1)
             result = s.connect_ex((str(ip), port))
             if result == 0:
                 print(f"{Colors.GREEN}[+] {ip}:{port} is open{Colors.R}")
-                active_nodes.add(ip)
-
-            s.close()
-
+                with active_nodes_lock:
+                    active_nodes.add(ip)
     except Exception as e:
         print(f"Error scanning {ip}:{port} - {e}")
 
 def scan_network(network, port=65300):
+    """Scan the entire network for active hosts on the specified port."""
     print(Colors.ORANGE + "[!] Scanning hosts on " + Colors.BOLD_WHITE + str(network) + Colors.ORANGE + " on port " + Colors.BOLD_WHITE + str(port) + Colors.R + "...\n")
-    #active_nodes.clear()  
     ip_network = ipaddress.ip_network(network, strict=False)
     
     with ThreadPoolExecutor(max_workers=100) as executor:
@@ -72,6 +72,7 @@ def scan_network(network, port=65300):
             executor.submit(scan_host, ip, port)
 
 def scan_private_network(port=65300):
+    """Scan the private network for active nodes."""
     global private_ip
     if private_ip:
         network = get_ip_range_cidr(private_ip)
@@ -79,6 +80,7 @@ def scan_private_network(port=65300):
             scan_network(network, port)
 
 def listen_for_connections(port=65300):
+    """Listen for incoming TCP connections on the specified port."""
     global private_ip
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
@@ -90,42 +92,33 @@ def listen_for_connections(port=65300):
             conn, addr = server_socket.accept()
             ip = addr[0]
             if ip == private_ip:
-                active_nodes.add(private_ip)
+                with active_nodes_lock:
+                    active_nodes.add(private_ip)
                 conn.close()
-                return
+                continue
             
             print(Colors.PURPLE + f"[+] Connection from {addr}" + Colors.R)
             threading.Thread(target=handle_client, args=(conn,)).start()
 
 def handle_client(conn):
+    """Handle an incoming client connection."""
     global private_ip
     with conn:
         conn.settimeout(5)
-        while True:
-            try:
+        try:
+            while True:
                 data = conn.recv(1024)
                 if not data:
-                    print("No data received; sending node data...")
-                    node_data = "whoami".encode()
-                    conn.sendall(node_data)
-                    print("Data sent!")
+                    print("No data received; closing connection.")
                     break
 
                 print(f"Received: {data.decode()}")
                 response = f"Message sent from {private_ip}".encode()
                 conn.sendall(response)
-                
-            except ConnectionResetError:
-                print("Connection reset by client.")
-                break
-            except socket.timeout:
-                print("Client connection timed out.")
-                break
-            except BrokenPipeError:
-                print("Failed to send data: connection is closed.")
-                break
-
-        print("Client connection closed.")
+        except (ConnectionResetError, socket.timeout, BrokenPipeError) as e:
+            print(f"Client connection error: {e}")
+        finally:
+            print("Client connection closed.")
 
 def try_connection_to_node(ip, port):
     """Attempt to connect to a node and send data."""
@@ -143,34 +136,40 @@ def try_connection_to_node(ip, port):
 def decide_roles_and_connect():
     """Decide roles and connect to another node."""
     global active_nodes
-    if len(active_nodes) > 1:  # At least two active nodes
-        nodes_list = list(active_nodes)
-        node_to_connect = nodes_list[1]  # Get the next node
+    with active_nodes_lock:
+        if len(active_nodes) > 1:  # At least two active nodes
+            nodes_list = list(active_nodes)
+            node_to_connect = nodes_list[1]  # Get the next node
 
-        # Randomly choose role: client or server
-        if hash(private_ip) % 2 == 0:  # Simple even/odd decision
-            # Act as a client
-            try_connection_to_node(node_to_connect, 65300)
-        else:
-            # Act as a server
-            listen_for_connections(65300)
+            # Randomly choose role: client or server
+            if hash(private_ip) % 2 == 0:  # Simple even/odd decision
+                # Act as a client
+                try_connection_to_node(node_to_connect, 65300)
+            else:
+                # Act as a server
+                listen_for_connections(65300)
 
 if __name__ == "__main__":
+    # Start network scanning and listening in separate threads
     threading.Thread(target=scan_private_network, args=(65300,), daemon=True).start()
     threading.Thread(target=listen_for_connections, args=(65300,), daemon=True).start()
 
     cont = 1
-    while True:
-        time.sleep(1)
-        scan_private_network(65300)
+    try:
+        while True:
+            time.sleep(10)  # Scan every 10 seconds
+            scan_private_network(65300)
 
-        print(Colors.BOLD_WHITE + f"\n[{cont}] " + Colors.BOLD_WHITE + f"Active nodes:" + Colors.R)
-        cont += 1
+            print(Colors.BOLD_WHITE + f"\n[{cont}] " + Colors.BOLD_WHITE + f"Active nodes:" + Colors.R)
+            cont += 1
 
-        node_cont = 1
-        for node in active_nodes:
-            print(Colors.ORANGE + f"[{node_cont}] " + Colors.GREEN + str(node) + Colors.R)
-            node_cont += 1
-        
-        #decide_roles_and_connect()
-
+            with active_nodes_lock:
+                node_cont = 1
+                for node in active_nodes:
+                    print(Colors.ORANGE + f"[{node_cont}] " + Colors.GREEN + str(node) + Colors.R)
+                    node_cont += 1
+            
+            # Decide roles and connect
+            decide_roles_and_connect()
+    except KeyboardInterrupt:
+        print("\nShutting down...")
