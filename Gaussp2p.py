@@ -70,7 +70,6 @@ def scan_network(network, port=65300):
     with ThreadPoolExecutor(max_workers=100) as executor:
         for ip in ip_network.hosts():
             executor.submit(scan_host, ip, port)
-            print(f"Testing\t{ip}")
 
 def scan_private_network(port=65300):
     global private_ip
