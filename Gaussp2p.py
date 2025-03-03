@@ -106,14 +106,14 @@ def handle_client(conn):
     with conn:
         conn.settimeout(5)
         try:
-            while True:
-                data = conn.recv(1024)
-                if not data:
-                    print("No data received; closing connection.")
-                    break
-
+            data = conn.recv(1024)
+            if not data:
+                print("No data received; sending default message.")
+                response = f"Hello from {private_ip}".encode()
+                conn.sendall(response)
+            else:
                 print(f"Received: {data.decode()}")
-                response = f"Message sent from {private_ip}".encode()
+                response = f"Message received by {private_ip}".encode()
                 conn.sendall(response)
         except (ConnectionResetError, socket.timeout, BrokenPipeError) as e:
             print(f"Client connection error: {e}")
@@ -145,9 +145,6 @@ def decide_roles_and_connect():
             if hash(private_ip) % 2 == 0:  # Simple even/odd decision
                 # Act as a client
                 try_connection_to_node(node_to_connect, 65300)
-            else:
-                # Act as a server
-                listen_for_connections(65300)
 
 if __name__ == "__main__":
     # Start network scanning and listening in separate threads
@@ -157,7 +154,7 @@ if __name__ == "__main__":
     cont = 1
     try:
         while True:
-            time.sleep(30)  # Scan every 10 seconds
+            time.sleep(10)  # Scan every 10 seconds
             scan_private_network(65300)
 
             print(Colors.BOLD_WHITE + f"\n[{cont}] " + Colors.BOLD_WHITE + f"Active nodes:" + Colors.R)
@@ -171,6 +168,5 @@ if __name__ == "__main__":
             
             # Decide roles and connect
             decide_roles_and_connect()
-
     except KeyboardInterrupt:
         print("\nShutting down...")
