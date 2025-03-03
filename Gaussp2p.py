@@ -104,34 +104,45 @@ def handle_client(conn):
     """Handle an incoming client connection."""
     global private_ip
     with conn:
-        conn.settimeout(5)
+        conn.settimeout(5)  # Set a timeout for receiving data
         try:
+            # Wait for data from the client
             data = conn.recv(1024)
-            if not data:
-                print("No data received; sending default message.")
-                response = f"Hello from {private_ip}".encode()
-                conn.sendall(response)
-            else:
+            if data:
                 print(f"Received: {data.decode()}")
+                # Send a response back to the client
                 response = f"Message received by {private_ip}".encode()
                 conn.sendall(response)
+            else:
+                print("No data received; closing connection.")
         except (ConnectionResetError, socket.timeout, BrokenPipeError) as e:
             print(f"Client connection error: {e}")
         finally:
             print("Client connection closed.")
 
+
 def try_connection_to_node(ip, port):
     """Attempt to connect to a node and send data."""
     try:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.settimeout(5)  # Set a timeout for the connection
             s.connect((ip, port))
             print(f"Connected to {ip}")
-            # Send a message
+            
+            # Send a message to the server
             message = f"Hello from {private_ip}".encode()
             s.sendall(message)
             print("Message sent!")
+            
+            # Wait for a response from the server
+            data = s.recv(1024)
+            if data:
+                print(f"Response from server: {data.decode()}")
+            else:
+                print("No response received from server.")
     except Exception as e:
         print(f"Could not connect to {ip}:{port} - {e}")
+
 
 def decide_roles_and_connect():
     """Decide roles and connect to another node."""
