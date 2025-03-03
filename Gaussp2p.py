@@ -157,6 +157,7 @@ def decide_roles_and_connect():
 
 if __name__ == "__main__":
     threading.Thread(target=scan_private_network, args=(65300,), daemon=True).start()
+    threading.Thread(target=listen_for_connections, args=(65300,), daemon=True).start()
 
     cont = 1
     while True:
@@ -173,4 +174,3 @@ if __name__ == "__main__":
         
         #decide_roles_and_connect()
 
-        listen_for_connections()
