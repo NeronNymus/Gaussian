@@ -54,7 +54,13 @@ def scan_host(ip, port):
             s.settimeout(1)
             result = s.connect_ex((str(ip), port))
             if result == 0:
+                print(f"{Colors.GREEN}[+] {ip}:{port} is open{Colors.R}")
                 active_nodes.add(ip)
+                print(ip)
+            else:
+                print(f"{Colors.RED}[-] {ip}:{port} is closed{Colors.R}")
+
+            s.close()
 
     except Exception as e:
         print(f"Error scanning {ip}:{port} - {e}")
@@ -67,6 +73,7 @@ def scan_network(network, port=65300):
     with ThreadPoolExecutor(max_workers=100) as executor:
         for ip in ip_network.hosts():
             executor.submit(scan_host, ip, port)
+            print(f"Testing\t{ip}")
 
 def scan_private_network(port=65300):
     global private_ip
@@ -168,5 +175,6 @@ if __name__ == "__main__":
             print(Colors.ORANGE + f"[{node_cont}] " + Colors.GREEN + str(node) + Colors.R)
             node_cont += 1
         
-        decide_roles_and_connect()
+        #decide_roles_and_connect()
 
+        listen_for_connections()
