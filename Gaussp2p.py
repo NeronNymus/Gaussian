@@ -56,9 +56,6 @@ def scan_host(ip, port):
             if result == 0:
                 print(f"{Colors.GREEN}[+] {ip}:{port} is open{Colors.R}")
                 active_nodes.add(ip)
-                print(ip)
-            else:
-                print(f"{Colors.RED}[-] {ip}:{port} is closed{Colors.R}")
 
             s.close()
 
