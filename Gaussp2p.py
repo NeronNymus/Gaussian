@@ -84,7 +84,7 @@ def listen_for_connections(port=65300):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
         server_socket.bind(('', port))
         server_socket.listen()
-        print(Colors.GREEN + f"[+] Listening for connections on port {port}..." + Colors.R)
+        print(Colors.PURPLE + f"[+] Listening for connections on port {port}..." + Colors.R)
 
         while True:
             conn, addr = server_socket.accept()
