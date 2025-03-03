@@ -157,7 +157,7 @@ if __name__ == "__main__":
     cont = 1
     try:
         while True:
-            time.sleep(10)  # Scan every 10 seconds
+            time.sleep(30)  # Scan every 10 seconds
             scan_private_network(65300)
 
             print(Colors.BOLD_WHITE + f"\n[{cont}] " + Colors.BOLD_WHITE + f"Active nodes:" + Colors.R)
@@ -171,5 +171,6 @@ if __name__ == "__main__":
             
             # Decide roles and connect
             decide_roles_and_connect()
+
     except KeyboardInterrupt:
         print("\nShutting down...")
